@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     # Frontend
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # Razorpay Sandbox
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
+
     # Server
     HOST: str = "0.0.0.0"
     PORT: int = 8000

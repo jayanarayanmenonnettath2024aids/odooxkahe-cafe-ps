@@ -414,7 +414,7 @@ async def pay_order(
     await payment_repo.create({
         "order_id": order_id,
         "payment_method_id": pm.id,
-        "amount": total,
+        "amount": data.amount,
         "transaction_reference": data.transaction_reference or f"TXN-{order_id}-{int(datetime.now(timezone.utc).timestamp())}",
         "status": PaymentStatus.SUCCESS,
         "paid_at": datetime.now(timezone.utc),
@@ -430,3 +430,58 @@ async def pay_order(
         await table_repo.update_status(order.table_id, TableStatus.AVAILABLE)
 
     return SuccessResponse(message=f"Payment of ₹{total:.2f} processed successfully via {pm.name}")
+
+# ── Razorpay Endpoints ───────────────────────────────────────────
+
+class RazorpayCreateOrderRequest(BaseModel):
+    amount: float
+
+@router.post("/razorpay/create-order", response_model=SuccessResponse)
+async def create_razorpay_order(data: RazorpayCreateOrderRequest, user = Depends(EmployeeUser)):
+    """Create a Razorpay order session."""
+    import razorpay
+    from app.core.config import get_settings
+    
+    settings = get_settings()
+    if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
+        raise HTTPException(status_code=500, detail="Razorpay is not configured")
+        
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    try:
+        # Amount in paise
+        order_data = {
+            "amount": int(data.amount * 100),
+            "currency": "INR",
+            "payment_capture": 1
+        }
+        rzp_order = client.order.create(data=order_data)
+        return SuccessResponse(data={"razorpay_order_id": rzp_order["id"], "amount": rzp_order["amount"], "key": settings.RAZORPAY_KEY_ID})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class RazorpayVerifyRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+@router.post("/razorpay/verify", response_model=SuccessResponse)
+async def verify_razorpay_payment(data: RazorpayVerifyRequest, user = Depends(EmployeeUser)):
+    """Verify a successful Razorpay payment signature."""
+    import razorpay
+    from app.core.config import get_settings
+    
+    settings = get_settings()
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    try:
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': data.razorpay_order_id,
+            'razorpay_payment_id': data.razorpay_payment_id,
+            'razorpay_signature': data.razorpay_signature
+        })
+        return SuccessResponse(message="Payment verified successfully")
+    except razorpay.errors.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid payment signature")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

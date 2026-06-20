@@ -29,6 +29,7 @@ from app.models.refresh_token import RefreshToken  # noqa
 from app.models.snapshot import OrderSnapshot, PaymentSnapshot, ReservationSnapshot, DailySalesSnapshot  # noqa
 from app.models.order_version import OrderVersion  # noqa
 from app.models.analytics_mirror import OrdersAnalytics, PaymentsAnalytics, ReservationsAnalytics, CustomerAnalytics  # noqa
+from app.models.store_setting import StoreSetting  # noqa
 
 config = context.config
 

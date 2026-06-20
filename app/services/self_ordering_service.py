@@ -14,7 +14,10 @@ from app.repositories.product_repository import ProductRepository
 from app.repositories.session_repository import SessionRepository
 from app.repositories.table_repository import TableRepository
 from app.schemas.self_ordering import SelfOrderPlaceRequest, SelfOrderStatusResponse
+from app.schemas.store_setting import StoreSettingUpdateRequest
 from app.services.coupon_service import CouponService
+from sqlalchemy import select
+from app.models.store_setting import StoreSetting
 
 
 class SelfOrderingService:
@@ -38,6 +41,24 @@ class SelfOrderingService:
             "floor_name": table.floor.name if table.floor else None,
             "status": table.active_status.value,
         }
+
+    async def get_store_setting(self) -> StoreSetting:
+        result = await self.db.execute(select(StoreSetting).order_by(StoreSetting.id))
+        setting = result.scalars().first()
+        if not setting:
+            setting = StoreSetting()
+            self.db.add(setting)
+            await self.db.commit()
+            await self.db.refresh(setting)
+        return setting
+
+    async def update_store_setting(self, data: StoreSettingUpdateRequest) -> StoreSetting:
+        setting = await self.get_store_setting()
+        for key, value in data.model_dump(exclude_unset=True).items():
+            setattr(setting, key, value)
+        await self.db.commit()
+        await self.db.refresh(setting)
+        return setting
 
     async def place_order(self, data: SelfOrderPlaceRequest) -> SelfOrderStatusResponse:
         """Customer places order via self-ordering."""

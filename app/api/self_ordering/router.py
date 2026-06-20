@@ -9,16 +9,32 @@ from app.core.database import get_db
 from app.schemas.common import SuccessResponse
 from app.schemas.product import ProductResponse
 from app.schemas.self_ordering import SelfOrderPlaceRequest, SelfOrderStatusResponse
+from app.schemas.store_setting import StoreSettingResponse, StoreSettingUpdateRequest
+from app.core.dependencies import AdminUser
 from app.services.product_service import ProductService
 from app.services.self_ordering_service import SelfOrderingService
 
 router = APIRouter(prefix="/s", tags=["Self-Ordering"])
 
 
-@router.get("/config")
-async def get_self_ordering_config():
+@router.get("/config", response_model=SuccessResponse[StoreSettingResponse])
+async def get_self_ordering_config(db: AsyncSession = Depends(get_db)):
     """Public endpoint for basic store settings."""
-    return SuccessResponse(data={"store_name": "Odoo Cafe", "currency": "USD"})
+    service = SelfOrderingService(db)
+    setting = await service.get_store_setting()
+    return SuccessResponse(data=setting)
+
+
+@router.put("/config", response_model=SuccessResponse[StoreSettingResponse])
+async def update_self_ordering_config(
+    data: StoreSettingUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    user=Depends(AdminUser)
+):
+    """Admin endpoint to update store settings."""
+    service = SelfOrderingService(db)
+    setting = await service.update_store_setting(data)
+    return SuccessResponse(data=setting, message="Settings updated successfully")
 
 @router.get("/{table_token}")
 async def get_table_info(table_token: str, db: AsyncSession = Depends(get_db)):

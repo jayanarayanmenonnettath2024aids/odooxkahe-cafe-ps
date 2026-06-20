@@ -85,11 +85,11 @@ class ConnectionManager:
         logger.info("WebSocket disconnected")
 
     async def broadcast_to_channel(
-        self, channel: str, event_type: WSEventType, data: dict[str, Any]
+        self, channel: str, event_type: WSEventType | str, data: dict[str, Any]
     ):
         """Send an event to all subscribers of a channel."""
         message = json.dumps({
-            "event": event_type.value,
+            "event": event_type.value if hasattr(event_type, "value") else str(event_type),
             "data": data,
         })
         if channel not in self._channels:

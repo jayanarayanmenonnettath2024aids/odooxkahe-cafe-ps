@@ -34,7 +34,7 @@ async def get_tables_by_floor(floor_id: int, db: AsyncSession = Depends(get_db))
 
 
 @router.get("/bulk-qr")
-async def bulk_qr_pdf(admin = Depends(AdminUser), db: AsyncSession = Depends(get_db)):
+async def bulk_qr_pdf(base_url: str = "http://localhost:5173", admin = Depends(AdminUser), db: AsyncSession = Depends(get_db)):
     from reportlab.pdfgen import canvas
     from reportlab.platypus import Image
     from app.utils.qr import generate_qr_bytes
@@ -49,7 +49,7 @@ async def bulk_qr_pdf(admin = Depends(AdminUser), db: AsyncSession = Depends(get
     y_position = 750
     for table in tables:
         c.drawString(100, y_position, f"Table QR: {table.table_number}")
-        qr_url = f"https://cafepos.app/menu/{table.unique_token}"
+        qr_url = f"{base_url}/s/{table.unique_token}"
         qr_bytes = generate_qr_bytes(qr_url)
         # Using a temporary file approach or reportlab ImageReader
         from reportlab.lib.utils import ImageReader
@@ -72,7 +72,7 @@ async def get_table(table_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{table_id}/qr-pdf")
-async def get_table_qr_pdf(table_id: int, admin = Depends(AdminUser), db: AsyncSession = Depends(get_db)):
+async def get_table_qr_pdf(table_id: int, base_url: str = "http://localhost:5173", admin = Depends(AdminUser), db: AsyncSession = Depends(get_db)):
     service = TableService(db)
     table = await service.get_by_id(table_id)
     from reportlab.pdfgen import canvas
@@ -87,7 +87,7 @@ async def get_table_qr_pdf(table_id: int, admin = Depends(AdminUser), db: AsyncS
     c.setFont("Helvetica", 10)
     c.drawString(200, 730, "Scan to order from your table")
     
-    qr_url = f"https://cafepos.app/menu/{table.unique_token}"
+    qr_url = f"{base_url}/s/{table.unique_token}"
     qr_bytes = generate_qr_bytes(qr_url)
     img = ImageReader(io.BytesIO(qr_bytes))
     c.drawImage(img, 150, 450, width=100*mm, height=100*mm)

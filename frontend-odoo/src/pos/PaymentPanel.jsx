@@ -46,7 +46,7 @@ export default function PaymentPanel({
         ))}
       </div>
 
-      {selectedMethod?.type === 'upi' && (
+      {(selectedMethod?.type === 'upi' || selectedMethod?.type === 'razorpay') && (
         <div className="qr-box">
           <div className="qr-pattern" aria-hidden="true">▦</div>
           <span>Scan to Pay{selectedMethod.upiId ? ` · ${selectedMethod.upiId}` : ''}</span>

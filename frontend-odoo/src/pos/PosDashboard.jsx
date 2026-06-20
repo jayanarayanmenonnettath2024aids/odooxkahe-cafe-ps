@@ -86,7 +86,8 @@ function normalizePaymentMethod(pm) {
     upiId: pm.upi_id || '',
     type: pm.name?.toLowerCase().includes('cash') ? 'cash'
         : pm.name?.toLowerCase().includes('card') ? 'card'
-        : pm.name?.toLowerCase().includes('upi') ? 'upi' : 'cash',
+        : pm.name?.toLowerCase().includes('upi') ? 'upi' 
+        : pm.name?.toLowerCase().includes('razorpay') ? 'razorpay' : 'cash',
   }
 }
 
@@ -165,7 +166,7 @@ export default function PosDashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [cats, prods, usrs, pms, custs, ords] = await Promise.all([
+        const [cats, prods, usrs, pms, custs, ords, promos] = await Promise.all([
           apiFetch('/categories'),
           apiFetch('/products'),
           apiFetch('/employees'),
@@ -178,6 +179,14 @@ export default function PosDashboard() {
         const normalizedProds = (prods || []).map(normalizeProduct)
         const normalizedUsers = (usrs || []).map(normalizeUser)
         const normalizedPMs = (pms || []).map(normalizePaymentMethod)
+        if (!normalizedPMs.some(m => m.type === 'razorpay' || m.type === 'upi' || m.type === 'card')) {
+          normalizedPMs.push({
+            id: 'razorpay-auto',
+            name: 'Razorpay',
+            type: 'razorpay',
+            active: true
+          });
+        }
         const normalizedOrds = (ords || []).map(normalizeOrder)
 
         setCategories(normalizedCats)
@@ -255,32 +264,73 @@ export default function PosDashboard() {
     pulseTimerRef.current = setTimeout(() => setPulsedProductId(null), 250)
   }
 
+  const broadcastCart = async (currentCart) => {
+    try {
+      const currentSubtotal = currentCart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      const currentGst = currentCart.reduce((sum, item) => sum + item.price * item.qty * ((item.tax || 0) / 100), 0);
+      const currentTotal = currentSubtotal + currentGst; // Not accounting for dynamic discount here for simplicity
+      
+      const sessionStr = localStorage.getItem('pos_session_id') || '1';
+      await apiFetch('/customer-display/push-active-order', {
+        method: 'POST',
+        body: JSON.stringify({
+          session_id: parseInt(sessionStr),
+          cart_data: {
+            items: currentCart,
+            subtotal: currentSubtotal,
+            tax_amount: currentGst,
+            discount_amount: 0,
+            total_amount: currentTotal
+          }
+        })
+      });
+    } catch (e) {
+      console.error("Failed to broadcast cart:", e);
+    }
+  };
+
   const addToCart = (product) => {
     setCart((prev) => {
+      let newCart;
       const existing = prev.find((item) => item.productId === product.id)
       if (existing) {
-        return prev.map((item) => (item.productId === product.id ? { ...item, qty: item.qty + 1 } : item))
+        newCart = prev.map((item) => (item.productId === product.id ? { ...item, qty: item.qty + 1 } : item))
+      } else {
+        cartItemSeq += 1
+        newCart = [
+          ...prev,
+          { cartItemId: `cart-${cartItemSeq}`, productId: product.id, name: product.name, price: product.price, tax: product.tax || 0, qty: 1, note: '' },
+        ]
       }
-      cartItemSeq += 1
-      return [
-        ...prev,
-        { cartItemId: `cart-${cartItemSeq}`, productId: product.id, name: product.name, price: product.price, tax: product.tax || 0, qty: 1, note: '' },
-      ]
+      broadcastCart(newCart);
+      return newCart;
     })
     pulseProduct(product.id)
   }
 
-  const incQty = (id) => setCart((prev) => prev.map((item) => (item.cartItemId === id ? { ...item, qty: item.qty + 1 } : item)))
+  const incQty = (id) => setCart((prev) => {
+    const next = prev.map((item) => (item.cartItemId === id ? { ...item, qty: item.qty + 1 } : item));
+    broadcastCart(next);
+    return next;
+  })
 
   const decQty = (id) =>
-    setCart((prev) => prev.flatMap((item) => {
-      if (item.cartItemId !== id) return [item]
-      if (item.qty <= 1) return []
-      return [{ ...item, qty: item.qty - 1 }]
-    }))
+    setCart((prev) => {
+      const next = prev.flatMap((item) => {
+        if (item.cartItemId !== id) return [item]
+        if (item.qty <= 1) return []
+        return [{ ...item, qty: item.qty - 1 }]
+      });
+      broadcastCart(next);
+      return next;
+    })
 
   const removeItem = (id) => {
-    setCart((prev) => prev.filter((item) => item.cartItemId !== id))
+    setCart((prev) => {
+      const next = prev.filter((item) => item.cartItemId !== id);
+      broadcastCart(next);
+      return next;
+    })
     if (selectedCartItemId === id) setSelectedCartItemId(null)
   }
 
@@ -390,7 +440,22 @@ export default function PosDashboard() {
     setSplitCount(1)
     setOrderNumber((prev) => prev + 1)
     setOrderTime(formatNow())
+    broadcastCart([])
   }
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
 
   const completePayment = async () => {
     if (completeDisabled) return
@@ -423,14 +488,82 @@ export default function PosDashboard() {
 
       // Determine payment method type for fallback
       const pmType = selectedPaymentMethod?.type || 'cash'
-      const pmId = selectedPaymentMethod?.id ? Number(selectedPaymentMethod.id) : null
+      const pmId = selectedPaymentMethod?.id && !String(selectedPaymentMethod.id).startsWith('razorpay') ? Number(selectedPaymentMethod.id) : null
+
+      if (pmType === 'upi' || pmType === 'card' || pmType === 'razorpay') {
+        const scriptLoaded = await loadRazorpayScript();
+        if (!scriptLoaded) {
+          throw new Error('Razorpay SDK failed to load. Check your connection.');
+        }
+
+        // Create Razorpay Order
+        const rzpRes = await apiFetch('/pos/razorpay/create-order', {
+          method: 'POST',
+          body: JSON.stringify({ amount: total })
+        });
+        
+        const options = {
+          key: rzpRes.key,
+          amount: rzpRes.amount,
+          currency: "INR",
+          name: "Cafe POS",
+          description: `Order #${activeOrder}`,
+          order_id: rzpRes.razorpay_order_id,
+          handler: async function (response) {
+            try {
+              // Verify Signature
+              await apiFetch('/pos/razorpay/verify', {
+                method: 'POST',
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature
+                })
+              });
+              
+              // Proceed to pay in local DB
+              await apiFetch(`/pos/receipt/${activeOrder}/pay`, {
+                method: 'POST',
+                body: JSON.stringify({
+                  payment_method_id: pmId,
+                  payment_method_type: pmType,
+                  amount: total,
+                  transaction_reference: response.razorpay_payment_id
+                })
+              });
+              showToast(`Payment of ₹${total.toFixed(0)} received via ${selectedPaymentMethod?.name || 'Razorpay'} 🎉`);
+              try {
+                const updatedOrders = await apiFetch('/pos/orders?limit=100');
+                setOrders((updatedOrders || []).map(normalizeOrder));
+              } catch(e) {}
+              resetForNextOrder();
+            } catch(e) {
+              showToast('Payment verification failed: ' + e.message);
+            }
+          },
+          prefill: {
+            name: activeCustomer?.name || 'Customer',
+            email: activeCustomer?.email || 'guest@example.com',
+            contact: activeCustomer?.phone || ''
+          },
+          theme: {
+            color: "#D4A056"
+          }
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response){
+           showToast('Payment Failed: ' + response.error.description);
+        });
+        rzp.open();
+        return; // wait for handler to execute
+      }
 
       await apiFetch(`/pos/receipt/${activeOrder}/pay`, {
         method: 'POST',
         body: JSON.stringify({
           payment_method_id: pmId,
           payment_method_type: pmType,
-          amount: total,
+          amount: isCashSelected && tenderedNum > total ? tenderedNum : total,
           transaction_reference: `TXN-${pmType.toUpperCase()}-${Date.now()}`
         })
       })
