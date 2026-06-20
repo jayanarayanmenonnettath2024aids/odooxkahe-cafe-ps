@@ -9,12 +9,12 @@ from pydantic import BaseModel, Field
 
 class CategoryCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
+    color: Optional[str] = Field(None, pattern=r"^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$")
 
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
-    color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
+    color: Optional[str] = Field(None, pattern=r"^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$")
 
 
 class CategoryResponse(BaseModel):

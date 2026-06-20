@@ -11,7 +11,7 @@ from app.models.promotion import PromotionDiscountType, PromotionScope
 
 class PromotionCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
-    promotion_scope: PromotionScope
+    promotion_scope: PromotionScope = Field(default=PromotionScope.ORDER)
     minimum_quantity: Optional[int] = Field(None, ge=1)
     minimum_order_amount: Optional[float] = Field(None, ge=0)
     discount_type: PromotionDiscountType

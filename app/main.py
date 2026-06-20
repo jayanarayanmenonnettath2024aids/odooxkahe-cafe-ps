@@ -8,6 +8,9 @@ import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
+
 from app.core.config import get_settings
 from app.core.middleware import setup_middleware
 
@@ -85,6 +88,20 @@ def create_app() -> FastAPI:
             "app": settings.APP_NAME,
             "version": settings.APP_VERSION,
         }
+
+    # Exception Handlers
+    @application.exception_handler(IntegrityError)
+    async def sqlalchemy_integrity_error_handler(request, exc: IntegrityError):
+        # We can analyze the error message to distinguish between UniqueViolation and ForeignKeyViolation
+        # For simplicity, returning 400 Bad Request to prevent 500 crashes
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "message": "Database integrity error. This may be caused by a duplicate entry or invalid reference.",
+                "detail": str(exc.orig) if hasattr(exc, "orig") else str(exc)
+            }
+        )
 
     return application
 

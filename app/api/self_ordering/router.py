@@ -15,6 +15,11 @@ from app.services.self_ordering_service import SelfOrderingService
 router = APIRouter(prefix="/s", tags=["Self-Ordering"])
 
 
+@router.get("/config")
+async def get_self_ordering_config():
+    """Public endpoint for basic store settings."""
+    return SuccessResponse(data={"store_name": "Odoo Cafe", "currency": "USD"})
+
 @router.get("/{table_token}")
 async def get_table_info(table_token: str, db: AsyncSession = Depends(get_db)):
     """Public endpoint — customer scans QR code."""
