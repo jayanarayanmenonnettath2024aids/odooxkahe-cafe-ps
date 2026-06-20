@@ -23,3 +23,9 @@ class PaymentRepository(BaseRepository[Payment]):
             .where(Payment.order_id == order_id)
         )
         return result.scalars().all()
+
+    async def get_by_transaction_reference(self, transaction_reference: str) -> Payment | None:
+        result = await self.db.execute(
+            select(Payment).where(Payment.transaction_reference == transaction_reference)
+        )
+        return result.scalars().first()

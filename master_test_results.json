@@ -1,28 +1,15 @@
 {
     "stats": {
-        "Total Executed": 23,
-        "Passed": 21,
-        "Failed": 2,
+        "Total Executed": 24,
+        "Passed": 24,
+        "Failed": 0,
         "Critical Bugs": 0,
-        "Major Bugs": 2,
+        "Major Bugs": 0,
         "Minor Bugs": 0,
         "Missing Features": 0,
         "Security Issues": 0,
         "Data Integrity Issues": 0,
         "Websocket Issues": 0
     },
-    "failures": [
-        {
-            "phase": "P11",
-            "message": "KDS send failed",
-            "bug_type": "Major Bugs",
-            "payload": "{\"success\":false,\"message\":\"Cannot send empty order to kitchen\",\"detail\":null}"
-        },
-        {
-            "phase": "P14",
-            "message": "Payment Process Failed",
-            "bug_type": "Major Bugs",
-            "payload": "{\"detail\":\"Not Found\"}"
-        }
-    ]
+    "failures": []
 }

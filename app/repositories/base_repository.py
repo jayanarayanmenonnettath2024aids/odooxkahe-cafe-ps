@@ -21,7 +21,7 @@ class BaseRepository(Generic[ModelType]):
         self.db = db
 
     async def get_by_id(self, id: int) -> Optional[ModelType]:
-        result = await self.db.execute(select(self.model).where(self.model.id == id))
+        result = await self.db.execute(select(self.model).where(getattr(self.model, "id") == id))
         return result.scalars().first()
 
     async def get_all(
@@ -40,7 +40,7 @@ class BaseRepository(Generic[ModelType]):
         return result.scalars().all()
 
     async def count(self, filters: dict[str, Any] | None = None) -> int:
-        query = select(func.count(self.model.id))
+        query = select(func.count(getattr(self.model, "id")))
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model, field) and value is not None:

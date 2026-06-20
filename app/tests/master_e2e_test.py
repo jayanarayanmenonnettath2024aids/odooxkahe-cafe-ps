@@ -190,19 +190,26 @@ class MasterQA_Suite:
             order_id = res.json()["data"]["current_order"]["id"]
             self.log_pass("P10", "Dine-In Order initialized")
             
+            # Add item to cart before sending to kitchen
+            add_res = await self.client.post("/pos/cart/add-product", json={"order_id": order_id, "product_id": 1, "quantity": 2}, headers=self.emp_headers)
+            if add_res.status_code == 200:
+                self.log_pass("P10", "Item added to cart")
+            else:
+                self.log_fail("P10", "Failed to add item to cart", payload=add_res.text)
+
+            # Apply Coupon before KDS
+            cp_res = await self.client.post("/pos/order/apply-coupon", json={"order_id": order_id, "coupon_code": "MASTER20"}, headers=self.emp_headers)
+            if cp_res.status_code == 200:
+                self.log_pass("P10", "Coupon applied to order")
+            else:
+                self.log_fail("P10", "Coupon apply failed", payload=cp_res.text)
+
             # Send to Kitchen
             kds_res = await self.client.post("/pos/order/send-to-kitchen", json={"order_id": order_id}, headers=self.emp_headers)
             if kds_res.status_code == 200:
                 self.log_pass("P11", "Sent to KDS successfully")
             else:
                 self.log_fail("P11", "KDS send failed", payload=kds_res.text)
-
-            # Apply Coupon
-            cp_res = await self.client.post("/pos/order/apply-coupon", json={"order_id": order_id, "coupon_code": "MASTER20"}, headers=self.emp_headers)
-            if cp_res.status_code == 200:
-                self.log_pass("P10", "Coupon applied to order")
-            else:
-                self.log_fail("P10", "Coupon apply failed", payload=cp_res.text)
                 
             self.test_order_id = order_id
         else:
@@ -215,7 +222,7 @@ class MasterQA_Suite:
 
     async def p14_payments(self):
         if hasattr(self, 'test_order_id'):
-            res = await self.client.post("/payments/cash", json={"order_id": self.test_order_id, "amount_tendered": 9999.0}, headers=self.emp_headers)
+            res = await self.client.post("/payment/cash", json={"order_id": self.test_order_id, "received_amount": 9999.0}, headers=self.emp_headers)
             if res.status_code == 200:
                 self.log_pass("P14", "Cash Payment Processed")
             else:

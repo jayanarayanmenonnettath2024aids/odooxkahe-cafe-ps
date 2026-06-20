@@ -11,6 +11,10 @@ from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.table import Table, TableStatus
 from app.models.user import User, UserRole
+from app.models.payment import Payment
+from app.models.order import Order, OrderItem
+from app.models.pos_session import PosSession
+from app.models.customer import Customer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("seed")

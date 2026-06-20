@@ -26,6 +26,13 @@ class KitchenStatus(str, enum.Enum):
     COMPLETED = "COMPLETED"
 
 
+class OrderType(str, enum.Enum):
+    DINE_IN = "DINE_IN"
+    TAKEAWAY = "TAKEAWAY"
+    PARCEL = "PARCEL"
+    SELF_ORDER = "SELF_ORDER"
+
+
 # Valid order state transitions
 ORDER_TRANSITIONS: dict[OrderStatus, list[OrderStatus]] = {
     OrderStatus.DRAFT: [OrderStatus.SENT_TO_KITCHEN, OrderStatus.CANCELLED],
@@ -42,12 +49,19 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     order_number: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
-    session_id: Mapped[int] = mapped_column(ForeignKey("pos_sessions.id"), nullable=False)
-    table_id: Mapped[int] = mapped_column(ForeignKey("tables.id"), nullable=False)
+    session_id: Mapped[int] = mapped_column(ForeignKey("pos_sessions.id"), nullable=False, index=True)
+    table_id: Mapped[int | None] = mapped_column(ForeignKey("tables.id"), nullable=True)
     customer_id: Mapped[int | None] = mapped_column(
-        ForeignKey("customers.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("customers.id", ondelete="SET NULL"), nullable=True, index=True
     )
     employee_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    
+    # New Takeaway / Parcel fields
+    order_type: Mapped[OrderType] = mapped_column(Enum(OrderType), default=OrderType.DINE_IN, index=True)
+    pickup_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    delivery_notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    customer_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    customer_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[OrderStatus] = mapped_column(
         Enum(OrderStatus), default=OrderStatus.DRAFT, index=True
     )
@@ -62,7 +76,7 @@ class Order(Base):
         ForeignKey("promotions.id", ondelete="SET NULL"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

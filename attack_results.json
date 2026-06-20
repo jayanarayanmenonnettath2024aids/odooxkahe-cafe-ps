@@ -1,0 +1,117 @@
+[
+  {
+    "attack": "Double Sessions",
+    "endpoint": "/pos/session/open",
+    "payload": {
+      "opening_balance": 100
+    },
+    "status": 400,
+    "response": "{\"success\":false,\"message\":\"A POS session is already open. Close it before opening a new one.\",\"detail\":null}",
+    "severity": "Major",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "Double Table Occupancy",
+    "endpoint": "/pos/select-table",
+    "payload": {
+      "table_id": 4
+    },
+    "status": 200,
+    "response": "{\"success\":true,\"message\":\"OK\",\"data\":{\"table\":{\"id\":4,\"floor_id\":1,\"table_number\":\"ATK1\",\"seat_count\":2,\"active_status\":\"OCCUPIED\",\"unique_token\":\"fdee1c85-7b13-460a-a1ac-e830d5849430\"},\"current_order\":{\"id\":1,\"order_number\":\"ORD-0001-0001\",\"session_id\":1,\"table_id\":4,\"table_number\":\"ATK1\",\"customer_id\":null,\"customer_name\":null,\"employee_id\":2,\"employee_name\":\"Attacker\",\"status\":\"DRAFT\",\"subtotal\":0.0,\"tax_amount\":0.0,\"discount_amount\":0.0,\"total_amount\":0.0,\"items\":[],\"created_at\":\"2026-06-20T10:52:19.706538Z\",\"updated_at\":\"2026-06-20T10:52:19.706538Z\"},\"table_status\":\"OCCUPIED\"}}",
+    "severity": "Critical",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "Close Session With Unpaid Orders",
+    "endpoint": "/pos/session/close",
+    "payload": {
+      "session_id": 1
+    },
+    "status": 400,
+    "response": "{\"success\":false,\"message\":\"Cannot close session with active orders\",\"detail\":null}",
+    "severity": "Major",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "Double Payments",
+    "endpoint": "/payment/cash",
+    "payload": {
+      "order_id": 1,
+      "received_amount": 200
+    },
+    "status": 400,
+    "response": "{\"success\":false,\"message\":\"Cannot pay for order in status 'DRAFT'\",\"detail\":null}",
+    "severity": "Critical",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "Modify PAID Order",
+    "endpoint": "/pos/cart/add-product",
+    "payload": {
+      "order_id": 1
+    },
+    "status": 200,
+    "response": "{\"success\":true,\"message\":\"OK\",\"data\":{\"id\":1,\"order_number\":\"ORD-0001-0001\",\"session_id\":1,\"table_id\":4,\"table_number\":\"ATK1\",\"customer_id\":null,\"customer_name\":null,\"employee_id\":2,\"employee_name\":\"Attacker\",\"status\":\"DRAFT\",\"subtotal\":200.0,\"tax_amount\":0.0,\"discount_amount\":0.0,\"total_amount\":200.0,\"items\":[{\"id\":1,\"product_id\":5,\"product_name\":\"Target\",\"quantity\":2,\"unit_price\":100.0,\"tax_amount\":0.0,\"discount_amount\":0.0,\"line_total\":200.0,\"kitchen_status\":\"TO_COOK\"}],\"created_at\":\"2026-06-20T10:52:19.706538Z\",\"updated_at\":\"2026-06-20T10:52:19.992429Z\"}}",
+    "severity": "Critical",
+    "defended": false,
+    "details": ""
+  },
+  {
+    "attack": "Delete Active Product",
+    "endpoint": "/products/5",
+    "payload": {},
+    "status": 400,
+    "response": "{\"success\":false,\"message\":\"Database integrity error. This may be caused by a duplicate entry or invalid reference.\",\"detail\":\"<class 'asyncpg.exceptions.NotNullViolationError'>: null value in column \\\"product_id\\\" of relation \\\"order_items\\\" violates not-null constraint\\nDETAIL:  Failing row contains (1, 1, null, 2, 100.00, 0.00, 0.00, 200.00, TO_COOK).\"}",
+    "severity": "Major",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "Delete Active Table",
+    "endpoint": "/tables/1",
+    "payload": {},
+    "status": 400,
+    "response": "{\"success\":false,\"message\":\"Database integrity error. This may be caused by a duplicate entry or invalid reference.\",\"detail\":\"<class 'asyncpg.exceptions.NotNullViolationError'>: null value in column \\\"table_id\\\" of relation \\\"orders\\\" violates not-null constraint\\nDETAIL:  Failing row contains (2, ORD-0001-0002, 1, null, null, 2, DRAFT, 100.00, 0.00, 0.00, 100.00, null, null, 2026-06-20 16:22:20.028298+05:30, 2026-06-20 16:22:20.121206+05:30).\"}",
+    "severity": "Major",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "Payment Replay Attack",
+    "endpoint": "/payment/upi/confirm",
+    "payload": {
+      "transaction_reference": "TXN_REPLAY"
+    },
+    "status": 400,
+    "response": "{\"success\":false,\"message\":\"Transaction reference already used\",\"detail\":null}",
+    "severity": "Critical",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "Invalid QR Token",
+    "endpoint": "/s/FAKE_TOKEN",
+    "payload": {},
+    "status": 404,
+    "response": "{\"success\":false,\"message\":\"Table with id 'token=FAKE_TOKEN' not found\",\"detail\":null}",
+    "severity": "Minor",
+    "defended": true,
+    "details": ""
+  },
+  {
+    "attack": "State Transition Abuse",
+    "endpoint": "/kds/order/1/status",
+    "payload": {
+      "status": "COMPLETED"
+    },
+    "status": 404,
+    "response": "{\"detail\":\"Not Found\"}",
+    "severity": "Major",
+    "defended": true,
+    "details": ""
+  }
+]

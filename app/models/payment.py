@@ -26,11 +26,14 @@ class Payment(Base):
         ForeignKey("payment_methods.id"), nullable=False
     )
     amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
-    transaction_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    transaction_reference: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     status: Mapped[PaymentStatus] = mapped_column(
         Enum(PaymentStatus), default=PaymentStatus.PENDING
     )
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
+    )
 
     # Relationships
     order = relationship("Order", back_populates="payments", lazy="selectin")

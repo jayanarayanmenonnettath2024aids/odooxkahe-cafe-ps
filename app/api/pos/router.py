@@ -21,8 +21,10 @@ from app.schemas.order import (
     AssignCustomerRequest,
     CartAddProductRequest,
     CartRemoveProductRequest,
+    CartRemoveProductRequest,
     CartUpdateQuantityRequest,
     CloseSessionRequest,
+    CreateOrderRequest,
     OpenSessionRequest,
     OrderResponse,
     OrderSummaryResponse,
@@ -90,6 +92,13 @@ async def get_floor_tables(floor_id: int, user = Depends(EmployeeUser), db: Asyn
 async def select_table(data: SelectTableRequest, user = Depends(EmployeeUser), db: AsyncSession = Depends(get_db)):
     service = OrderService(db)
     result = await service.select_table(data, user.id)
+    return SuccessResponse(data=result)
+
+
+@router.post("/create-order")
+async def create_order(data: CreateOrderRequest, user = Depends(EmployeeUser), db: AsyncSession = Depends(get_db)):
+    service = OrderService(db)
+    result = await service.create_order(data, user.id)
     return SuccessResponse(data=result)
 
 

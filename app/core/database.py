@@ -7,9 +7,11 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import get_settings
 
+from typing import Any, AsyncGenerator
+
 settings = get_settings()
 
-engine_kwargs = {
+engine_kwargs: dict[str, Any] = {
     "echo": settings.DEBUG,
 }
 if not settings.DATABASE_URL.startswith("sqlite"):
@@ -34,7 +36,7 @@ class Base(DeclarativeBase):
     pass
 
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency that yields an async database session."""
     async with async_session_factory() as session:
         try:

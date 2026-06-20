@@ -2,6 +2,7 @@
 JWT authentication and password hashing utilities.
 """
 
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
@@ -26,18 +27,33 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
+def _create_token(
+    data: dict[str, Any],
+    token_type: str,
+    expires_delta: Optional[timedelta],
+    default_expire_minutes: int,
+) -> str:
+    """Create a JWT token."""
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (
+        expires_delta
+        or timedelta(minutes=default_expire_minutes)
+    )
+    to_encode.update({"exp": expire, "type": token_type, "jti": str(uuid.uuid4())})
+    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
 def create_access_token(
     data: dict[str, Any],
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     """Create a JWT access token."""
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
-        expires_delta
-        or timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    return _create_token(
+        data, 
+        token_type="access", 
+        expires_delta=expires_delta, 
+        default_expire_minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    to_encode.update({"exp": expire, "type": "access"})
-    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
 def create_refresh_token(
@@ -45,13 +61,12 @@ def create_refresh_token(
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     """Create a JWT refresh token."""
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
-        expires_delta
-        or timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
+    return _create_token(
+        data, 
+        token_type="refresh", 
+        expires_delta=expires_delta, 
+        default_expire_minutes=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60
     )
-    to_encode.update({"exp": expire, "type": "refresh"})
-    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
 def decode_token(token: str) -> dict[str, Any]:

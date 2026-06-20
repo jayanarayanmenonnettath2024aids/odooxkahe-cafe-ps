@@ -1,0 +1,161 @@
+erDiagram
+    categories {
+        INTEGER id PK
+        VARCHAR name 
+        VARCHAR color 
+    }
+    coupons {
+        INTEGER id PK
+        VARCHAR code 
+        VARCHAR discount_type 
+        NUMERIC discount_value 
+        DATE expiry_date 
+        BOOLEAN is_active 
+    }
+    customers {
+        INTEGER id PK
+        VARCHAR name 
+        VARCHAR email 
+        VARCHAR phone 
+    }
+    floors {
+        INTEGER id PK
+        VARCHAR name 
+    }
+    orders {
+        INTEGER id PK
+        VARCHAR order_number 
+        INTEGER session_id FK
+        INTEGER table_id FK
+        INTEGER customer_id FK
+        INTEGER employee_id FK
+        VARCHAR order_type 
+        DATETIME pickup_time 
+        VARCHAR delivery_notes 
+        VARCHAR customer_phone 
+        VARCHAR customer_name 
+        VARCHAR status 
+        NUMERIC subtotal 
+        NUMERIC tax_amount 
+        NUMERIC discount_amount 
+        NUMERIC total_amount 
+        INTEGER coupon_id FK
+        INTEGER promotion_id FK
+        DATETIME created_at 
+        DATETIME updated_at 
+    }
+    orders }|--|| pos_sessions : "session_id"
+    orders }|--|| tables : "table_id"
+    orders }|--|| customers : "customer_id"
+    orders }|--|| users : "employee_id"
+    orders }|--|| coupons : "coupon_id"
+    orders }|--|| promotions : "promotion_id"
+    order_items {
+        INTEGER id PK
+        INTEGER order_id FK
+        INTEGER product_id FK
+        INTEGER quantity 
+        NUMERIC unit_price 
+        NUMERIC tax_amount 
+        NUMERIC discount_amount 
+        NUMERIC line_total 
+        VARCHAR kitchen_status 
+    }
+    order_items }|--|| orders : "order_id"
+    order_items }|--|| products : "product_id"
+    payments {
+        INTEGER id PK
+        INTEGER order_id FK
+        INTEGER payment_method_id FK
+        NUMERIC amount 
+        VARCHAR transaction_reference 
+        VARCHAR status 
+        DATETIME paid_at 
+        DATETIME created_at 
+    }
+    payments }|--|| orders : "order_id"
+    payments }|--|| payment_methods : "payment_method_id"
+    payment_methods {
+        INTEGER id PK
+        VARCHAR name 
+        BOOLEAN enabled 
+        VARCHAR upi_id 
+    }
+    pos_sessions {
+        INTEGER id PK
+        INTEGER opened_by FK
+        DATETIME opened_at 
+        DATETIME closed_at 
+        NUMERIC opening_balance 
+        NUMERIC closing_balance 
+        VARCHAR status 
+    }
+    pos_sessions }|--|| users : "opened_by"
+    products {
+        INTEGER id PK
+        VARCHAR name 
+        TEXT description 
+        NUMERIC price 
+        NUMERIC tax_percentage 
+        VARCHAR unit_of_measure 
+        INTEGER category_id FK
+        BOOLEAN is_active 
+    }
+    products }|--|| categories : "category_id"
+    promotions {
+        INTEGER id PK
+        VARCHAR name 
+        VARCHAR promotion_scope 
+        INTEGER minimum_quantity 
+        NUMERIC minimum_order_amount 
+        VARCHAR discount_type 
+        NUMERIC discount_value 
+        BOOLEAN is_active 
+    }
+    refresh_tokens {
+        INTEGER id PK
+        INTEGER user_id FK
+        VARCHAR token 
+        DATETIME expires_at 
+        BOOLEAN revoked 
+        DATETIME created_at 
+    }
+    refresh_tokens }|--|| users : "user_id"
+    reservations {
+        INTEGER id PK
+        VARCHAR customer_name 
+        VARCHAR customer_email 
+        VARCHAR customer_phone 
+        INTEGER table_id FK
+        DATE reservation_date 
+        TIME start_time 
+        TIME end_time 
+        INTEGER guest_count 
+        VARCHAR status 
+        VARCHAR source 
+        INTEGER coupon_id FK
+        TEXT notes 
+        DATETIME created_at 
+        DATETIME updated_at 
+    }
+    reservations }|--|| tables : "table_id"
+    reservations }|--|| coupons : "coupon_id"
+    tables {
+        INTEGER id PK
+        INTEGER floor_id FK
+        VARCHAR table_number 
+        INTEGER seat_count 
+        VARCHAR active_status 
+        VARCHAR unique_token 
+    }
+    tables }|--|| floors : "floor_id"
+    users {
+        INTEGER id PK
+        VARCHAR name 
+        VARCHAR email 
+        VARCHAR password_hash 
+        VARCHAR role 
+        BOOLEAN is_active 
+        DATETIME created_at 
+        DATETIME updated_at 
+    }

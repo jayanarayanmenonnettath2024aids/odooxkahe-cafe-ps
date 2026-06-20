@@ -24,7 +24,11 @@ from app.models.promotion import Promotion  # noqa
 from app.models.pos_session import PosSession  # noqa
 from app.models.order import Order, OrderItem  # noqa
 from app.models.payment import Payment  # noqa
-from app.models.booking import Booking  # noqa
+from app.models.reservation import Reservation  # noqa
+from app.models.refresh_token import RefreshToken  # noqa
+from app.models.snapshot import OrderSnapshot, PaymentSnapshot, ReservationSnapshot, DailySalesSnapshot  # noqa
+from app.models.order_version import OrderVersion  # noqa
+from app.models.analytics_mirror import OrdersAnalytics, PaymentsAnalytics, ReservationsAnalytics, CustomerAnalytics  # noqa
 
 config = context.config
 

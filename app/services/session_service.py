@@ -4,11 +4,13 @@ POS Session service — open/close session lifecycle.
 
 from datetime import datetime, timezone
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, NotFoundException, SessionNotOpenException
 from app.core.websocket_manager import WSEventType, ws_manager
 from app.models.pos_session import SessionStatus
+from app.models.order import Order, OrderStatus
 from app.repositories.session_repository import SessionRepository
 from app.schemas.order import CloseSessionRequest, OpenSessionRequest, SessionResponse
 
@@ -47,6 +49,17 @@ class SessionService:
             raise NotFoundException("Session", data.session_id)
         if session.status == SessionStatus.CLOSED:
             raise BadRequestException("Session is already closed")
+
+        # Check for active orders
+        result = await self.db.execute(
+            select(Order).where(
+                Order.session_id == data.session_id,
+                Order.status.in_([OrderStatus.DRAFT, OrderStatus.SENT_TO_KITCHEN, OrderStatus.PREPARING, OrderStatus.READY])
+            )
+        )
+        active_orders = result.scalars().all()
+        if active_orders:
+            raise BadRequestException("Cannot close session with active orders")
 
         session.status = SessionStatus.CLOSED
         session.closing_balance = data.closing_balance

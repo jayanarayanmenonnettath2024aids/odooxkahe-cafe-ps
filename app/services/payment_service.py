@@ -39,14 +39,17 @@ class PaymentService:
         self.pm_repo = PaymentMethodRepository(db)
         self.table_repo = TableRepository(db)
 
-    async def process_cash_payment(self, data: CashPaymentRequest) -> CashPaymentResponse:
-        """Process cash payment with change calculation."""
-        order = await self.order_repo.get_full_order(data.order_id)
+    async def _validate_order_for_payment(self, order_id: int):
+        order = await self.order_repo.get_full_order(order_id)
         if not order:
-            raise NotFoundException("Order", data.order_id)
-
+            raise NotFoundException("Order", order_id)
         if order.status == OrderStatus.PAID:
             raise BadRequestException("Order is already paid")
+        return order
+
+    async def process_cash_payment(self, data: CashPaymentRequest) -> CashPaymentResponse:
+        """Process cash payment with change calculation."""
+        order = await self._validate_order_for_payment(data.order_id)
         if order.status not in (OrderStatus.READY, OrderStatus.SENT_TO_KITCHEN, OrderStatus.PREPARING):
             raise BadRequestException(f"Cannot pay for order in status '{order.status.value}'")
 
@@ -85,12 +88,7 @@ class PaymentService:
 
     async def process_upi_payment(self, data: UPIPaymentRequest) -> UPIPaymentResponse:
         """Generate UPI QR code for payment."""
-        order = await self.order_repo.get_full_order(data.order_id)
-        if not order:
-            raise NotFoundException("Order", data.order_id)
-
-        if order.status == OrderStatus.PAID:
-            raise BadRequestException("Order is already paid")
+        order = await self._validate_order_for_payment(data.order_id)
 
         total = float(order.total_amount)
 
@@ -134,6 +132,13 @@ class PaymentService:
         if not payment:
             raise NotFoundException("Payment", data.payment_id)
 
+        if payment.status == PaymentStatus.SUCCESS:
+            raise BadRequestException("Payment is already successful")
+
+        existing_txn = await self.payment_repo.get_by_transaction_reference(data.transaction_reference)
+        if existing_txn and existing_txn.id != data.payment_id:
+            raise BadRequestException("Transaction reference already used")
+
         payment.status = PaymentStatus.SUCCESS
         payment.transaction_reference = data.transaction_reference
         payment.paid_at = datetime.now(timezone.utc)
@@ -152,12 +157,11 @@ class PaymentService:
 
     async def process_card_payment(self, data: CardPaymentRequest) -> CardPaymentResponse:
         """Process card payment."""
-        order = await self.order_repo.get_full_order(data.order_id)
-        if not order:
-            raise NotFoundException("Order", data.order_id)
+        order = await self._validate_order_for_payment(data.order_id)
 
-        if order.status == OrderStatus.PAID:
-            raise BadRequestException("Order is already paid")
+        existing_txn = await self.payment_repo.get_by_transaction_reference(data.transaction_reference)
+        if existing_txn:
+            raise BadRequestException("Transaction reference already used")
 
         total = float(order.total_amount)
 

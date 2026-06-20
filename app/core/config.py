@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://cafepos:cafepos_secret@localhost:5432/cafepos_db"
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:runtime@localhost:5432/cafepos_db"
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -43,6 +43,21 @@ class Settings(BaseSettings):
     # Admin seed
     ADMIN_EMAIL: str = "admin@cafepos.com"
     ADMIN_PASSWORD: str = "admin123"
+
+    # SMTP Settings
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int | None = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    EMAIL_FROM: str | None = None
+
+    # Twilio Settings
+    TWILIO_ACCOUNT_SID: str | None = None
+    TWILIO_AUTH_TOKEN: str | None = None
+    TWILIO_PHONE_NUMBER: str | None = None
+
+    # Frontend
+    FRONTEND_URL: str = "http://localhost:3000"
 
     # Server
     HOST: str = "0.0.0.0"

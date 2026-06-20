@@ -39,6 +39,13 @@ async def refresh_token(data: RefreshTokenRequest, db: AsyncSession = Depends(ge
     return await service.refresh(data.refresh_token)
 
 
+@router.post("/logout")
+async def logout(data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)):
+    service = AuthService(db)
+    await service.logout(data.refresh_token)
+    return SuccessResponse(message="Logged out successfully")
+
+
 @router.get("/me", response_model=SuccessResponse[UserResponse])
 async def get_me(current_user = Depends(CurrentUser)):
     return SuccessResponse(data=UserResponse.model_validate(current_user))

@@ -91,6 +91,8 @@ class KDSService:
 
         # Check if all items completed — auto-advance order
         order = await self.order_repo.get_full_order(item.order_id)
+        if not order:
+            raise NotFoundException("Order", item.order_id)
         all_complete = all(i.kitchen_status == KitchenStatus.COMPLETED for i in order.items)
         if all_complete and order.status == OrderStatus.PREPARING:
             order.status = OrderStatus.READY

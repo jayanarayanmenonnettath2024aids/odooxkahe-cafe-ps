@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.models.order import KitchenStatus, OrderStatus
+from app.models.order import KitchenStatus, OrderStatus, OrderType
 
 
 # --- Order Item Schemas ---
@@ -32,13 +32,17 @@ class OrderResponse(BaseModel):
     id: int
     order_number: str
     session_id: int
-    table_id: int
+    table_id: Optional[int] = None
     table_number: Optional[str] = None
     customer_id: Optional[int] = None
     customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
     employee_id: int
     employee_name: Optional[str] = None
     status: OrderStatus
+    order_type: OrderType
+    pickup_time: Optional[datetime] = None
+    delivery_notes: Optional[str] = None
     subtotal: float
     tax_amount: float
     discount_amount: float
@@ -68,6 +72,16 @@ class CartRemoveProductRequest(BaseModel):
 
 
 # --- POS Order Schemas ---
+
+class CreateOrderRequest(BaseModel):
+    session_id: int
+    order_type: OrderType = OrderType.DINE_IN
+    table_id: Optional[int] = None
+    pickup_time: Optional[datetime] = None
+    delivery_notes: Optional[str] = None
+    customer_phone: Optional[str] = None
+    customer_name: Optional[str] = None
+
 
 class SelectTableRequest(BaseModel):
     table_id: int
