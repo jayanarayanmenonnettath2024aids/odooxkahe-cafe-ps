@@ -259,6 +259,9 @@ class CreateOrderWithItemsRequest(BaseModel):
     customer_id: Optional[int] = None
     customer_name: Optional[str] = None
     items: list[OrderItemInput] = []
+    discount_amount: float = 0.0
+    coupon_id: Optional[int] = None
+    promotion_id: Optional[int] = None
 
 
 @router.post("/orders", response_model=SuccessResponse[OrderResponse])
@@ -313,6 +316,17 @@ async def create_order_with_items(
 
     # Fetch the final order state
     full_order = await service.get_cart(order_id)
+
+    if data.discount_amount > 0 or data.coupon_id or data.promotion_id:
+        db_order = await service.order_repo.get_by_id(order_id)
+        if db_order:
+            db_order.discount_amount = data.discount_amount
+            db_order.coupon_id = data.coupon_id
+            db_order.promotion_id = data.promotion_id
+            db_order.total_amount = max(0.0, float(db_order.subtotal) + float(db_order.tax_amount) - float(data.discount_amount))
+            await db.flush()
+            full_order = await service.get_cart(order_id)
+
     return SuccessResponse(data=full_order, message="Order created")
 
 
