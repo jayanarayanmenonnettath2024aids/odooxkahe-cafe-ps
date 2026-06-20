@@ -1,0 +1,272 @@
+.kds-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+  color: #F6EFE7;
+  background: linear-gradient(160deg, #1c100c 0%, #2C1810 55%, #3B2417 100%);
+}
+
+.kds-topnav {
+  flex: 0 0 64px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.kds-logo {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  background: linear-gradient(135deg, #C68E57, #D4A056);
+  color: #2C1810;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.kds-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: #D4A056;
+  margin: 0;
+}
+.kds-header-icons {
+  display: flex;
+  gap: 10px;
+}
+.kds-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  font-size: 14px;
+}
+.kds-icon-btn.round {
+  border-radius: 50%;
+}
+.kds-header-right {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.kds-toolbar {
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.kds-sidebar-toggle {
+  border: none;
+  background: transparent;
+  color: #F6EFE7;
+  font-size: 16px;
+}
+
+.kds-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kds-tab-divider {
+  color: rgba(246, 239, 231, 0.3);
+}
+.kds-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #F6EFE7;
+  border-radius: 10px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.kds-tab.active {
+  background: linear-gradient(135deg, #6F4E37, #C68E57);
+  border-color: transparent;
+}
+.kds-badge {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.kds-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 7px 14px;
+  margin-left: auto;
+}
+.kds-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #F6EFE7;
+  font-size: 13px;
+  width: 160px;
+}
+.kds-search input::placeholder {
+  color: rgba(246, 239, 231, 0.45);
+}
+
+.kds-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(246, 239, 231, 0.7);
+}
+.kds-pagination button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #F6EFE7;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+}
+.kds-pagination button:disabled {
+  opacity: 0.3;
+}
+
+.kds-body {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.kds-sidebar {
+  flex: 0 0 200px;
+  padding: 18px;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.kds-clear-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: transparent;
+  color: #E89B3A;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+}
+.kds-filter-group h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(246, 239, 231, 0.6);
+  background: rgba(212, 160, 86, 0.15);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.kds-filter-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: #F6EFE7;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+.kds-filter-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.kds-filter-item.selected {
+  background: rgba(212, 160, 86, 0.25);
+  color: #D4A056;
+  font-weight: 600;
+}
+
+.kds-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+  align-content: start;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.kds-ticket {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kds-ticket:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+.kds-ticket.preparing {
+  border-color: rgba(212, 160, 86, 0.4);
+}
+.kds-ticket.completed {
+  border-color: rgba(74, 222, 128, 0.45);
+  opacity: 0.6;
+}
+
+.kds-ticket-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.kds-ticket-item {
+  font-size: 14px;
+  padding: 2px 0;
+}
+.kds-ticket-item.prepared {
+  text-decoration: line-through;
+  color: rgba(246, 239, 231, 0.45);
+}
+
+.kds-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(246, 239, 231, 0.55);
+  font-size: 13px;
+  padding: 40px 0;
+}
+
+@media (max-width: 900px) {
+  .kds-toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 16px;
+  }
+  .kds-search input {
+    width: 110px;
+  }
+  .kds-sidebar {
+    flex: 0 0 160px;
+  }
+}

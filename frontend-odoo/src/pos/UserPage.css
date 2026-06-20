@@ -1,0 +1,284 @@
+.user-page {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.user-page-title {
+  font-family: 'Playfair Display', serif;
+  color: #D4A056;
+  font-size: 28px;
+  margin: 0 0 16px;
+}
+
+.user-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.user-new-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(212, 160, 86, 0.4);
+  background: rgba(212, 160, 86, 0.12);
+  color: #D4A056;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.user-new-btn:hover {
+  background: rgba(212, 160, 86, 0.22);
+}
+
+.user-action-wrap {
+  position: relative;
+}
+.user-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(212, 160, 86, 0.5);
+  background: linear-gradient(135deg, #C68E57, #D4A056);
+  color: #2C1810;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.user-action-menu {
+  position: absolute;
+  top: 46px;
+  left: 0;
+  background: #3B2417;
+  border: 1px solid rgba(212, 160, 86, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 20;
+  min-width: 170px;
+}
+.user-action-menu button {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #F6EFE7;
+  padding: 11px 18px;
+  font-size: 13px;
+  text-align: left;
+}
+.user-action-menu button:hover {
+  background: rgba(212, 160, 86, 0.2);
+}
+
+.user-search {
+  flex: 1;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 10px 16px;
+  margin-left: auto;
+}
+.user-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #F6EFE7;
+  font-size: 13px;
+}
+.user-search input::placeholder {
+  color: rgba(246, 239, 231, 0.5);
+}
+
+.user-table {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.user-row {
+  display: grid;
+  grid-template-columns: 36px 40px 2fr 1fr 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  font-size: 13px;
+}
+
+.user-head {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(246, 239, 231, 0.7);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+.user-data {
+  color: #F6EFE7;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.user-data:hover {
+  background: rgba(212, 160, 86, 0.06);
+}
+
+.user-checkbox-cell input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+
+.user-name-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #F6EFE7;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  padding: 8px 10px;
+  outline: none;
+  font-weight: 600;
+}
+.user-name-input:hover,
+.user-name-input:focus {
+  border-color: rgba(212, 160, 86, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+.user-name-input::placeholder {
+  color: rgba(246, 239, 231, 0.4);
+}
+
+.user-row select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #F6EFE7;
+  font-size: 13px;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+
+.user-status-pill {
+  display: inline-flex;
+  width: fit-content;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.user-empty {
+  padding: 24px;
+  text-align: center;
+  color: rgba(246, 239, 231, 0.6);
+  font-size: 13px;
+}
+
+/* ---------------- Change Password modal ---------------- */
+
+.change-password-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 66;
+}
+.change-password-modal {
+  width: 320px;
+  max-width: 90vw;
+  background: #2C1810;
+  border: 1px solid rgba(212, 160, 86, 0.35);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: popIn 0.2s ease;
+}
+.change-password-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.change-password-header h3 {
+  font-family: 'Playfair Display', serif;
+  color: #F6EFE7;
+  margin: 0;
+}
+.change-password-close {
+  border: none;
+  background: transparent;
+  color: #FB7185;
+  font-size: 15px;
+}
+.change-password-subtext {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(246, 239, 231, 0.7);
+}
+.change-password-modal input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #F6EFE7;
+  font-size: 14px;
+  outline: none;
+}
+.change-password-enter-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 0;
+  font-weight: 700;
+  font-size: 14px;
+  color: #F6EFE7;
+  background: linear-gradient(135deg, #6F4E37, #D4A056);
+  transition: all 0.25s ease;
+}
+.change-password-enter-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.change-password-enter-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(212, 160, 86, 0.3);
+}
+
+@media (max-width: 700px) {
+  .user-row {
+    grid-template-columns: 30px 36px 2fr 1fr;
+  }
+  .user-row span:nth-child(5),
+  .user-row button.user-status-pill {
+    display: none;
+  }
+}

@@ -1,0 +1,218 @@
+.orders-page {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.orders-title {
+  font-family: 'Playfair Display', serif;
+  color: #D4A056;
+  font-size: 28px;
+  margin: 0 0 16px;
+}
+
+.orders-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 10px 16px;
+  margin-bottom: 18px;
+}
+.orders-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: #F6EFE7;
+  font-size: 13px;
+}
+.orders-search input::placeholder {
+  color: rgba(246, 239, 231, 0.5);
+}
+
+.orders-table {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.orders-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr 1fr 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.orders-head {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(246, 239, 231, 0.7);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+.orders-data {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #F6EFE7;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+.orders-data:hover {
+  background: rgba(212, 160, 86, 0.1);
+}
+
+.order-link {
+  color: #D4A056;
+  font-weight: 600;
+}
+.order-amount {
+  color: #E89B3A;
+  font-weight: 600;
+}
+
+.status-pill {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.orders-empty {
+  padding: 24px;
+  text-align: center;
+  color: rgba(246, 239, 231, 0.6);
+  font-size: 13px;
+}
+
+/* Detail modal */
+
+.orders-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 55;
+}
+
+.orders-modal {
+  position: relative;
+  width: 380px;
+  max-width: 90vw;
+  background: #2C1810;
+  border: 1px solid rgba(212, 160, 86, 0.35);
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: popIn 0.2s ease;
+}
+
+.orders-modal h3 {
+  font-family: 'Playfair Display', serif;
+  color: #F6EFE7;
+  margin: 0 0 16px;
+}
+
+.orders-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: none;
+  background: transparent;
+  color: #FB7185;
+  font-size: 15px;
+}
+
+.orders-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.orders-modal-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.field-label {
+  font-size: 11px;
+  color: rgba(246, 239, 231, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.orders-modal-products {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 6px 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.orders-modal-product-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #F6EFE7;
+}
+
+.orders-modal-action {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.25s ease;
+}
+.orders-modal-action.edit {
+  background: linear-gradient(135deg, #C68E57, #D4A056);
+  color: #2C1810;
+}
+.orders-modal-action.delete {
+  background: rgba(251, 113, 133, 0.2);
+  border: 1px solid #FB7185;
+  color: #FB7185;
+}
+.orders-modal-action:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 700px) {
+  .orders-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'date order'
+      'customer amount'
+      'status status';
+  }
+  .orders-row span:nth-child(1) { grid-area: date; }
+  .orders-row span:nth-child(2) { grid-area: order; }
+  .orders-row span:nth-child(3) { grid-area: customer; }
+  .orders-row span:nth-child(4) { grid-area: amount; }
+  .orders-row span:nth-child(5) { grid-area: status; }
+  .orders-head { display: none; }
+}
