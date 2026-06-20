@@ -7,14 +7,15 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
+from pwdlib.hashers.bcrypt import BcryptHasher
 
 from app.core.config import get_settings
 
 settings = get_settings()
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = PasswordHash((BcryptHasher(),))
 
 
 def hash_password(password: str) -> str:

@@ -421,6 +421,16 @@ class OrderService:
             
         return self._to_response(full_order)
 
+    async def get_all_orders(self, limit: int = 100) -> list[OrderResponse]:
+        """Get recent orders."""
+        result = await self.db.execute(
+            select(Order)
+            .order_by(Order.created_at.desc())
+            .limit(limit)
+        )
+        orders = result.scalars().all()
+        return [self._to_response(o) for o in orders]
+
     # ── Order Summary ───────────────────────────────────────────────
 
     async def get_order_summary(self, order_id: int) -> OrderSummaryResponse:

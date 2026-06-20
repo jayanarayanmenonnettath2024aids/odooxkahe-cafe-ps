@@ -133,6 +133,12 @@ async def search_pos_products(
 
 # ── Cart ─────────────────────────────────────────────────────────
 
+@router.get("/orders", response_model=SuccessResponse[list[OrderResponse]])
+async def list_pos_orders(limit: int = 100, user = Depends(EmployeeUser), db: AsyncSession = Depends(get_db)):
+    service = OrderService(db)
+    return SuccessResponse(data=await service.get_all_orders(limit))
+
+
 @router.post("/cart/add-product", response_model=SuccessResponse[OrderResponse])
 async def cart_add_product(data: CartAddProductRequest, user = Depends(EmployeeUser), db: AsyncSession = Depends(get_db)):
     service = OrderService(db)
@@ -237,3 +243,176 @@ async def email_receipt(order_id: int, data: EmailReceiptRequest, user = Depends
         raise HTTPException(status_code=500, detail="Failed to send email")
         
     return SuccessResponse(message=f"Receipt sent to {data.email}")
+
+# ── Frontend-Compatible Alias Endpoints ─────────────────────────
+# These bridge the gap between what the React frontend calls and the actual backend routes.
+
+class OrderItemInput(BaseModel):
+    product_id: int
+    quantity: int = 1
+    notes: Optional[str] = None
+
+class CreateOrderWithItemsRequest(BaseModel):
+    session_id: int
+    order_type: str = "TAKEAWAY"
+    table_id: Optional[int] = None
+    customer_id: Optional[int] = None
+    customer_name: Optional[str] = None
+    items: list[OrderItemInput] = []
+
+
+@router.post("/orders", response_model=SuccessResponse[OrderResponse])
+async def create_order_with_items(
+    data: CreateOrderWithItemsRequest,
+    user = Depends(EmployeeUser),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Frontend-compatible endpoint: creates an order and adds all cart items atomically.
+    Maps the React frontend's POST /pos/orders call to the backend's create_order + add_product flow.
+    """
+    from app.schemas.order import CreateOrderRequest, CartAddProductRequest
+    from app.models.order import OrderType as OT
+
+    # Normalize order_type string → enum
+    type_map = {
+        "dine_in": OT.DINE_IN, "DINE_IN": OT.DINE_IN,
+        "takeaway": OT.TAKEAWAY, "TAKEAWAY": OT.TAKEAWAY,
+        "parcel": OT.PARCEL, "PARCEL": OT.PARCEL,
+    }
+    order_type = type_map.get(data.order_type, OT.TAKEAWAY)
+
+    service = OrderService(db)
+
+    # Create the base order
+    create_req = CreateOrderRequest(
+        session_id=data.session_id,
+        order_type=order_type,
+        table_id=data.table_id,
+        customer_name=data.customer_name,
+    )
+    result = await service.create_order(create_req, user.id)
+    order_data = result.get("current_order", {})
+    order_id = order_data.get("id")
+
+    if not order_id:
+        raise HTTPException(status_code=500, detail="Failed to create order")
+
+    # Assign customer if provided
+    if data.customer_id:
+        await service.assign_customer(order_id, data.customer_id)
+
+    # Add all cart items
+    for item in data.items:
+        add_req = CartAddProductRequest(
+            order_id=order_id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+        )
+        await service.add_product(add_req)
+
+    # Fetch the final order state
+    full_order = await service.get_cart(order_id)
+    return SuccessResponse(data=full_order, message="Order created")
+
+
+@router.get("/orders/{order_id}", response_model=SuccessResponse[OrderResponse])
+async def get_single_order(order_id: int, user = Depends(EmployeeUser), db: AsyncSession = Depends(get_db)):
+    """Get a single order by ID."""
+    service = OrderService(db)
+    return SuccessResponse(data=await service.get_cart(order_id))
+
+
+@router.post("/cart/{order_id}/send-to-kitchen", response_model=SuccessResponse[OrderResponse])
+async def send_to_kitchen_by_id(order_id: int, user = Depends(EmployeeUser), db: AsyncSession = Depends(get_db)):
+    """Frontend-compatible alias: POST /pos/cart/{order_id}/send-to-kitchen."""
+    service = OrderService(db)
+    return SuccessResponse(data=await service.send_to_kitchen(order_id), message="Order sent to kitchen")
+
+
+class UniversalPayRequest(BaseModel):
+    payment_method_id: Optional[int] = None
+    payment_method_type: Optional[str] = None   # 'cash', 'card', 'upi'
+    amount: float
+    transaction_reference: Optional[str] = None
+
+@router.post("/receipt/{order_id}/pay", response_model=SuccessResponse)
+async def pay_order(
+    order_id: int,
+    data: UniversalPayRequest,
+    user = Depends(EmployeeUser),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Frontend-compatible universal payment endpoint.
+    Automatically sends the order to kitchen if still in DRAFT, then processes payment.
+    """
+    from app.models.order import OrderStatus
+    from app.repositories.order_repository import OrderRepository
+    from app.repositories.payment_method_repository import PaymentMethodRepository
+    from app.models.payment import PaymentStatus
+    from app.repositories.payment_repository import PaymentRepository
+    from datetime import datetime, timezone
+    from app.models.table import TableStatus
+    from app.repositories.table_repository import TableRepository
+
+    order_repo = OrderRepository(db)
+    pm_repo = PaymentMethodRepository(db)
+    payment_repo = PaymentRepository(db)
+    table_repo = TableRepository(db)
+    order_service = OrderService(db)
+
+    order = await order_repo.get_full_order(order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.status == OrderStatus.PAID:
+        raise HTTPException(status_code=400, detail="Order already paid")
+
+    # If order is still DRAFT, auto-advance to SENT_TO_KITCHEN
+    if order.status == OrderStatus.DRAFT:
+        if not order.items:
+            raise HTTPException(status_code=400, detail="Cannot pay an empty order")
+        order.status = OrderStatus.SENT_TO_KITCHEN
+        await db.flush()
+
+    # Determine payment method type
+    pm_type = "cash"
+    if data.payment_method_id:
+        pm = await pm_repo.get_by_id(data.payment_method_id)
+        if pm:
+            pm_type = pm.name.lower()  # 'cash', 'card', 'upi'
+    elif data.payment_method_type:
+        pm_type = data.payment_method_type.lower()
+
+    # Find the payment method record by type
+    pm_name_map = {"cash": "CASH", "card": "CARD", "upi": "UPI"}
+    pm = await pm_repo.get_by_name(pm_name_map.get(pm_type, "CASH"))
+    if not pm:
+        # Fallback: try get by id
+        if data.payment_method_id:
+            pm = await pm_repo.get_by_id(data.payment_method_id)
+    if not pm:
+        raise HTTPException(status_code=400, detail=f"Payment method '{pm_type}' not configured")
+
+    total = float(order.total_amount or 0)
+
+    # Create payment record
+    await payment_repo.create({
+        "order_id": order_id,
+        "payment_method_id": pm.id,
+        "amount": total,
+        "transaction_reference": data.transaction_reference or f"TXN-{order_id}-{int(datetime.now(timezone.utc).timestamp())}",
+        "status": PaymentStatus.SUCCESS,
+        "paid_at": datetime.now(timezone.utc),
+    })
+
+    # Mark order as PAID
+    order.status = OrderStatus.PAID
+    await db.flush()
+    await db.commit()
+
+    # Free table if assigned
+    if order.table_id:
+        await table_repo.update_status(order.table_id, TableStatus.AVAILABLE)
+
+    return SuccessResponse(message=f"Payment of ₹{total:.2f} processed successfully via {pm.name}")
