@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt - Cafe POS</title>
+<style>
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+  .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+  .header h1 { margin: 0; color: #333; font-size: 24px; }
+  .header p { margin: 5px 0 0 0; color: #777; font-size: 14px; }
+  .meta { display: flex; justify-content: space-between; margin-bottom: 20px; color: #555; font-size: 14px; }
+  .table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .table th { border-bottom: 2px solid #ddd; padding: 10px; text-align: left; color: #333; font-size: 14px; }
+  .table td { border-bottom: 1px solid #eee; padding: 10px; color: #555; font-size: 14px; }
+  .table td.right, .table th.right { text-align: right; }
+  .totals { width: 50%; float: right; border-collapse: collapse; margin-bottom: 30px; }
+  .totals td { padding: 5px 10px; text-align: right; color: #333; font-size: 14px; }
+  .totals .bold { font-weight: bold; font-size: 16px; border-top: 2px solid #ddd; padding-top: 10px; }
+  .clearfix { clear: both; }
+  .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; color: #888; font-size: 12px; }
+  .qr-code { text-align: center; margin: 20px 0; }
+  .qr-code img { max-width: 120px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>CAFE POS</h1>
+    <p>123 Coffee Street, Tech Hub • Tel: +1 234 567 8900</p>
+  </div>
+  
+  <div class="meta">
+    <div>
+      <strong>Order:</strong> {{ order_number }}<br>
+      <strong>Payment:</strong> {{ payment_method }}
+    </div>
+    <div style="text-align: right;">
+      <strong>Date:</strong> {{ date }}<br>
+    </div>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th class="right">Qty</th>
+        <th class="right">Price</th>
+        <th class="right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.product_name }}</td>
+        <td class="right">{{ item.quantity }}</td>
+        <td class="right">₹{{ "%.2f"|format(item.unit_price) }}</td>
+        <td class="right">₹{{ "%.2f"|format(item.line_total) }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4" style="text-align: center;">No items found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr>
+      <td>Subtotal:</td>
+      <td>₹{{ "%.2f"|format(subtotal) }}</td>
+    </tr>
+    <tr>
+      <td>Tax:</td>
+      <td>₹{{ "%.2f"|format(tax) }}</td>
+    </tr>
+    {% if discount > 0 %}
+    <tr>
+      <td>Discount:</td>
+      <td>-₹{{ "%.2f"|format(discount) }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td class="bold">TOTAL:</td>
+      <td class="bold">₹{{ "%.2f"|format(total) }}</td>
+    </tr>
+  </table>
+  
+  <div class="clearfix"></div>
+
+  <div style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
+    <a href="https://cafepos.app/api/pos/receipt/{{ order_number }}/pdf" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Download PDF Receipt</a>
+  </div>
+
+  <div class="qr-code">
+    <!-- Inline QR image or generic placeholder pointing to API -->
+    <p>Scan to give feedback</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://cafepos.app/feedback/{{ order_number }}" alt="QR Code" />
+  </div>
+
+  <div class="footer">
+    <p>Thank you for dining with us!</p>
+    <p>If you have any questions about this receipt, please contact support@cafepos.app</p>
+  </div>
+</div>
+
+</body>
+</html>

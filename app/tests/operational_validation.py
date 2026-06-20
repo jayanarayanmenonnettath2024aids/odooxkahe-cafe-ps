@@ -87,9 +87,17 @@ class OperationalValidator:
 
     async def phase_3_simulate_day(self):
         logger.info("Phase 3: Simulate Day")
-        # Open Session
+        # Open Session or get active
         sess = await self.client.post("/pos/session/open", json={"opening_balance": 100}, headers=self.emp_headers)
-        self.data["session_id"] = sess.json()["data"]["id"] if sess.status_code == 200 else 1
+        if sess.status_code == 200:
+            self.data["session_id"] = sess.json()["data"]["id"]
+        else:
+            # Get active session
+            act = await self.client.get("/pos/session/current", headers=self.emp_headers)
+            if act.status_code == 200 and act.json()["data"]:
+                self.data["session_id"] = act.json()["data"]["id"]
+            else:
+                self.data["session_id"] = 1
 
         # Order 1 (Cash)
         ord1 = await self.client.post("/pos/select-table", json={"table_id": self.data["table_id"], "session_id": self.data["session_id"]}, headers=self.emp_headers)

@@ -229,7 +229,7 @@ async def email_receipt(order_id: int, data: EmailReceiptRequest, user = Depends
     
     success = await EmailService.send_receipt_email(
         customer_email=data.email,
-        order_number=order.order_number,
+        order_data=order.model_dump(),
         pdf_bytes=pdf_bytes
     )
     

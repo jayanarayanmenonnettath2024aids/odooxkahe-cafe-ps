@@ -35,11 +35,32 @@ async def get_tables_by_floor(floor_id: int, db: AsyncSession = Depends(get_db))
 
 @router.get("/bulk-qr")
 async def bulk_qr_pdf(admin = Depends(AdminUser), db: AsyncSession = Depends(get_db)):
-    # Generate a dummy bulk QR PDF for testing purposes
     from reportlab.pdfgen import canvas
+    from reportlab.platypus import Image
+    from app.utils.qr import generate_qr_bytes
+    from reportlab.lib.units import mm
+    
+    service = TableService(db)
+    tables = await service.get_all()
+    
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
-    c.drawString(100, 750, "Bulk Table QRs")
+    
+    y_position = 750
+    for table in tables:
+        c.drawString(100, y_position, f"Table QR: {table.table_number}")
+        qr_url = f"https://cafepos.app/menu/{table.unique_token}"
+        qr_bytes = generate_qr_bytes(qr_url)
+        # Using a temporary file approach or reportlab ImageReader
+        from reportlab.lib.utils import ImageReader
+        img = ImageReader(io.BytesIO(qr_bytes))
+        c.drawImage(img, 100, y_position - 100, width=80*mm, height=80*mm)
+        
+        y_position -= 150
+        if y_position < 100:
+            c.showPage()
+            y_position = 750
+            
     c.save()
     buffer.seek(0)
     return Response(content=buffer.getvalue(), media_type="application/pdf", headers={"Content-Disposition": "attachment; filename=bulk_qr.pdf"})
@@ -54,12 +75,23 @@ async def get_table(table_id: int, db: AsyncSession = Depends(get_db)):
 async def get_table_qr_pdf(table_id: int, admin = Depends(AdminUser), db: AsyncSession = Depends(get_db)):
     service = TableService(db)
     table = await service.get_by_id(table_id)
-    # Generate a dummy QR PDF for testing purposes
     from reportlab.pdfgen import canvas
+    from reportlab.lib.units import mm
+    from app.utils.qr import generate_qr_bytes
+    from reportlab.lib.utils import ImageReader
+    
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
-    c.drawString(100, 750, f"Table QR: {table.table_number}")
-    c.drawString(100, 730, f"Token: {table.unique_token}")
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(200, 750, f"Table: {table.table_number}")
+    c.setFont("Helvetica", 10)
+    c.drawString(200, 730, "Scan to order from your table")
+    
+    qr_url = f"https://cafepos.app/menu/{table.unique_token}"
+    qr_bytes = generate_qr_bytes(qr_url)
+    img = ImageReader(io.BytesIO(qr_bytes))
+    c.drawImage(img, 150, 450, width=100*mm, height=100*mm)
+    
     c.save()
     buffer.seek(0)
     return Response(content=buffer.getvalue(), media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=table_{table_id}_qr.pdf"})

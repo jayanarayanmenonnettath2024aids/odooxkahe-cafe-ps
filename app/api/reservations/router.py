@@ -53,6 +53,42 @@ async def get_reservation(
     return SuccessResponse(data=reservation)
 
 
+@router.get("/{id}/pdf")
+async def get_reservation_pdf(
+    id: int, user=Depends(EmployeeUser), db: AsyncSession = Depends(get_db)
+):
+    from fastapi import Response
+    import io
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.units import mm
+    from app.utils.qr import generate_qr_bytes
+    from reportlab.lib.utils import ImageReader
+    
+    service = ReservationService(db)
+    reservation = await service.get_by_id(id)
+    
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(150, 750, f"Reservation Confirmation: #{reservation.id}")
+    c.setFont("Helvetica", 12)
+    c.drawString(150, 720, f"Customer: {reservation.customer_name}")
+    c.drawString(150, 700, f"Date: {reservation.reservation_date.strftime('%Y-%m-%d')}")
+    c.drawString(150, 680, f"Time: {reservation.reservation_time.strftime('%H:%M')}")
+    c.drawString(150, 660, f"Guests: {reservation.guest_count}")
+    
+    qr_url = f"https://cafepos.app/reservations/checkin/{reservation.id}"
+    qr_bytes = generate_qr_bytes(qr_url)
+    img = ImageReader(io.BytesIO(qr_bytes))
+    c.drawImage(img, 150, 450, width=80*mm, height=80*mm)
+    c.setFont("Helvetica", 10)
+    c.drawString(150, 430, "Scan this QR code upon arrival for quick check-in")
+    
+    c.save()
+    buffer.seek(0)
+    return Response(content=buffer.getvalue(), media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=reservation_{id}.pdf"})
+
+
 @router.patch("/{id}", response_model=SuccessResponse[ReservationResponse])
 async def update_reservation(
     id: int,

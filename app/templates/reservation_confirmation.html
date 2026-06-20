@@ -1,38 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
-        .logo { font-size: 24px; font-weight: bold; color: #333; }
-        .content { color: #555; line-height: 1.6; }
-        .highlight { background: #f0f8ff; padding: 15px; border-left: 4px solid #0066cc; margin: 20px 0; }
-        .footer { text-align: center; font-size: 12px; color: #aaa; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservation Confirmed</title>
+<style>
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+  .header { text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+  .header h1 { margin: 0; color: #333; font-size: 24px; }
+  .header p { margin: 5px 0 0 0; color: #777; font-size: 14px; }
+  .content { color: #555; font-size: 16px; line-height: 1.5; margin-bottom: 20px; }
+  .details-box { background-color: #f9f9f9; border-left: 4px solid #4CAF50; padding: 15px; margin-bottom: 20px; }
+  .details-box strong { color: #333; }
+  .qr-code { text-align: center; margin: 20px 0; }
+  .qr-code img { max-width: 150px; }
+  .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; color: #888; font-size: 12px; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">Odoo Cafe POS</div>
-        </div>
-        <div class="content">
-            <h2>Reservation Confirmation</h2>
-            <p>Dear {{ customer_name }},</p>
-            <p>Your reservation has been confirmed. We look forward to hosting you!</p>
-            
-            <div class="highlight">
-                <strong>Date:</strong> {{ date }}<br>
-                <strong>Time:</strong> {{ time }}<br>
-                <strong>Guests:</strong> {{ guest_count }}<br>
-                <strong>Table:</strong> {{ table_number }}<br>
-            </div>
-            
-            <p>If you need to make any changes or cancel, please contact us.</p>
-        </div>
-        <div class="footer">
-            &copy; 2026 Odoo Cafe POS. All rights reserved.
-        </div>
-    </div>
+
+<div class="container">
+  <div class="header">
+    <h1>CAFE POS</h1>
+    <p>Reservation Confirmation</p>
+  </div>
+  
+  <div class="content">
+    <p>Dear {{ customer_name }},</p>
+    <p>Your reservation is confirmed! We look forward to hosting you. Please find your reservation details below:</p>
+  </div>
+
+  <div class="details-box">
+    <p><strong>Date:</strong> {{ date }}</p>
+    <p><strong>Time:</strong> {{ time }}</p>
+    <p><strong>Guests:</strong> {{ guest_count }}</p>
+    <p><strong>Table:</strong> {{ table_number }}</p>
+  </div>
+
+  <div class="qr-code">
+    <p style="font-size: 14px; color: #777;">Present this QR code upon arrival:</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://cafepos.app/reservations/checkin/{{ reservation_id }}" alt="QR Code" />
+  </div>
+
+  <div class="footer">
+    <p>123 Coffee Street, Tech Hub • Tel: +1 234 567 8900</p>
+    <p>Need to cancel or change your reservation? Please call us at least 2 hours in advance.</p>
+  </div>
+</div>
+
 </body>
 </html>

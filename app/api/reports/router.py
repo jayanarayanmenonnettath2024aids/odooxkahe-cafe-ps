@@ -111,9 +111,29 @@ async def export_report(
         from reportlab.lib.styles import getSampleStyleSheet
         from reportlab.lib import colors
 
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        import os
+        font_path = r"C:\Windows\Fonts\arial.ttf"
+        bold_font_path = r"C:\Windows\Fonts\arialbd.ttf"
+        base_font = "Helvetica"
+        bold_font = "Helvetica-Bold"
+        if os.path.exists(font_path) and os.path.exists(bold_font_path):
+            try:
+                pdfmetrics.registerFont(TTFont('Unicode', font_path))
+                pdfmetrics.registerFont(TTFont('Unicode-Bold', bold_font_path))
+                base_font = "Unicode"
+                bold_font = "Unicode-Bold"
+            except Exception:
+                pass
+
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         styles = getSampleStyleSheet()
+        # Override fonts in styles
+        styles["Title"].fontName = bold_font
+        styles["Heading2"].fontName = bold_font
+        styles["Normal"].fontName = base_font
         elements = []
 
         elements.append(Paragraph("CafePOS Sales Report", styles["Title"]))
@@ -132,6 +152,8 @@ async def export_report(
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
             ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("FONTNAME", (0, 0), (-1, 0), bold_font),
+            ("FONTNAME", (0, 1), (-1, -1), base_font),
         ]))
         elements.append(t)
         elements.append(Spacer(1, 20))
@@ -147,6 +169,8 @@ async def export_report(
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#714B67")),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTNAME", (0, 0), (-1, 0), bold_font),
+                ("FONTNAME", (0, 1), (-1, -1), base_font),
             ]))
             elements.append(t2)
 
