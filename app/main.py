@@ -87,6 +87,7 @@ def create_app() -> FastAPI:
     from app.api.analytics.router import router as analytics_router
     from app.api.coupons.public_router import router as public_coupons_router
     from app.api.health.router import router as health_router
+    from app.api.ai.router import router as ai_router
 
     application.include_router(auth_router)
     application.include_router(products_router)
@@ -111,6 +112,7 @@ def create_app() -> FastAPI:
     application.include_router(analytics_router)
     application.include_router(public_coupons_router)
     application.include_router(health_router)
+    application.include_router(ai_router)
 
     # Static files for QR codes
     qr_dir = os.path.join(os.getcwd(), "generated_qr")

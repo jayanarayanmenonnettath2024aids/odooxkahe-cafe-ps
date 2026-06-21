@@ -12,6 +12,7 @@ import PromotionsPage from './PromotionsPage'
 import PaymentMethodPage from './PaymentMethodPage'
 import UserPage from './UserPage'
 import ReportsPage from './ReportsPage'
+import AiInsightsPage from './AiInsightsPage'
 import { DRAWER_ITEMS, CATEGORY_COLORS } from './data'
 
 import './PosDashboard.css'
@@ -694,6 +695,10 @@ export default function PosDashboard() {
       setView('promotions')
       return
     }
+    if (id === 'aiInsights') {
+      setView('aiInsights')
+      return
+    }
     const item = DRAWER_ITEMS.find((d) => d.id === id)
     showToast(id === 'logout' ? 'Logged out 👋' : `${item.label} (coming soon)`)
   }
@@ -1012,6 +1017,8 @@ export default function PosDashboard() {
         />
       ) : view === 'promotions' ? (
         <PromotionsPage />
+      ) : view === 'aiInsights' ? (
+        <AiInsightsPage onBack={() => setView('pos')} />
       ) : (
         <ReportsPage
           orders={orders}

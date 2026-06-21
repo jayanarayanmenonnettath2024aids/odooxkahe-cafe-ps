@@ -30,6 +30,8 @@ from app.models.snapshot import OrderSnapshot, PaymentSnapshot, ReservationSnaps
 from app.models.order_version import OrderVersion  # noqa
 from app.models.analytics_mirror import OrdersAnalytics, PaymentsAnalytics, ReservationsAnalytics, CustomerAnalytics  # noqa
 from app.models.store_setting import StoreSetting  # noqa
+from app.models.inventory import InventoryItem # noqa
+from app.models.feedback import Feedback # noqa
 
 config = context.config
 

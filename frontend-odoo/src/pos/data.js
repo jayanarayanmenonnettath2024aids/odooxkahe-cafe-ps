@@ -82,6 +82,7 @@ export const DRAWER_ITEMS = [
   { id: 'employees', label: 'User/Employee', icon: '👥' },
   { id: 'kitchen', label: 'KDS', icon: '🍳' },
   { id: 'reports', label: 'Reports', icon: '📈' },
+  { id: 'aiInsights', label: 'AI Insights', icon: '✨' },
   { id: 'logout', label: 'Log-Out', icon: '🚪' },
 ]
 
