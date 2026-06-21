@@ -119,6 +119,8 @@ class KDSService:
         return KDSOrderResponse(
             id=order.id,
             order_number=order.order_number,
+            order_type=order.order_type,
+            table_id=order.table_id,
             table_number=order.table.table_number if order.table else None,
             floor_name=order.table.floor.name if order.table and hasattr(order.table, 'floor') and order.table.floor else None,
             status=order.status,

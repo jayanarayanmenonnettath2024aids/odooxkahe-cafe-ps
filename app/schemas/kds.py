@@ -22,6 +22,8 @@ class KDSOrderItemResponse(BaseModel):
 class KDSOrderResponse(BaseModel):
     id: int
     order_number: str
+    order_type: Optional[str] = None
+    table_id: Optional[int] = None
     table_number: Optional[str] = None
     floor_name: Optional[str] = None
     status: OrderStatus

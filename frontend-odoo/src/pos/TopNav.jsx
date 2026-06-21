@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import CustomerModule from './CustomerModule'
 
 const TABLE_NUMBERS = Array.from({ length: 16 }, (_, i) => i + 1)
@@ -26,7 +27,34 @@ export default function TopNav({
   onSaveCustomer,
   onDeleteCustomer,
   onToggleDrawer,
+  onSubmitReservation,
 }) {
+  const [resData, setResData] = useState({
+    date: '',
+    time: '',
+    partySize: 2,
+    customer_name: '',
+    customer_email: '',
+    customer_phone: ''
+  });
+
+  const handleReservationSubmit = () => {
+    if (!resData.date || !resData.time || !resData.customer_name || !resData.customer_phone) {
+      alert("Please fill in Name, Phone, Date, and Time.");
+      return;
+    }
+    onSubmitReservation({
+      customer_name: resData.customer_name,
+      customer_email: resData.customer_email,
+      customer_phone: resData.customer_phone,
+      reservation_date: resData.date,
+      start_time: resData.time + ":00",
+      end_time: resData.time + ":00", // Simplification
+      guest_count: parseInt(resData.partySize, 10),
+      table_id: table !== 'No' ? table : null
+    });
+  };
+
   return (
     <header className="pos-topnav">
       <div className="topnav-section topnav-left">
@@ -65,12 +93,15 @@ export default function TopNav({
         <div className="quick-action-wrap">
           <button type="button" className="icon-btn" title="Reservation" onClick={onToggleReservation}>📅</button>
           {reservationOpen && (
-            <div className="popover reservation-popover">
+            <div className="popover reservation-popover" style={{ width: '320px' }}>
               <h4>Table Reservation</h4>
-              <label>Date<input type="date" /></label>
-              <label>Time<input type="time" /></label>
-              <label>Party Size<input type="number" min="1" defaultValue={2} /></label>
-              <button type="button" className="popover-confirm" onClick={onToggleReservation}>Confirm</button>
+              <label>Name<input type="text" value={resData.customer_name} onChange={e => setResData({...resData, customer_name: e.target.value})} placeholder="John Doe" /></label>
+              <label>Email<input type="email" value={resData.customer_email} onChange={e => setResData({...resData, customer_email: e.target.value})} placeholder="john@example.com" /></label>
+              <label>Phone<input type="tel" value={resData.customer_phone} onChange={e => setResData({...resData, customer_phone: e.target.value})} placeholder="1234567890" /></label>
+              <label>Date<input type="date" value={resData.date} onChange={e => setResData({...resData, date: e.target.value})} /></label>
+              <label>Time<input type="time" value={resData.time} onChange={e => setResData({...resData, time: e.target.value})} /></label>
+              <label>Party Size<input type="number" min="1" value={resData.partySize} onChange={e => setResData({...resData, partySize: e.target.value})} /></label>
+              <button type="button" className="popover-confirm" onClick={handleReservationSubmit}>Confirm & Send Email</button>
             </div>
           )}
         </div>

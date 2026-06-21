@@ -19,6 +19,8 @@ export default function KdsPage() {
       // map backend order to frontend ticket structure
       const mapped = orders.map(o => ({
         id: o.id.toString(),
+        order_type: o.order_type,
+        table_id: o.table_id,
         manuallyCompleted: o.status === 'READY',
         items: o.items.map(i => ({
           id: i.id,
@@ -259,7 +261,17 @@ export default function KdsPage() {
                 className={`kds-ticket ${stage}`}
                 onClick={() => toggleTicketCompleted(ticket.id)}
               >
-                <div className="kds-ticket-number">#{ticket.id}</div>
+                <div className="kds-ticket-header">
+                  <div className="kds-ticket-number" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span>#{ticket.id}</span>
+                    <span style={{ fontSize: '14px', color: '#e0e0e0', fontWeight: 'normal' }}>
+                      {ticket.order_type === 'DINE_IN' ? `🍽️ Dine-in (Table ${ticket.table_id || '?'})` : '🛍️ Takeaway'}
+                    </span>
+                  </div>
+                  <div className="kds-ticket-time">
+                    {ticket.time}
+                  </div>
+                </div>
                 {ticket.items.map((item, index) => (
                   <div
                     key={index}

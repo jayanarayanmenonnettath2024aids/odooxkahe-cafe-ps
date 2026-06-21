@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import BadRequestException, NotFoundException
 from app.models.table import TableStatus
 from app.repositories.reservation_repository import ReservationRepository
+from app.services.email_service import EmailService
 from app.repositories.table_repository import TableRepository
 from app.schemas.reservation import (
     ReservationCreate,
@@ -41,8 +42,25 @@ class ReservationService:
             )
             if overlap:
                 raise BadRequestException("Table is already reserved for this time slot.")
+            
+            # Change table status to RESERVED
+            await self.table_repo.update_status(data.table_id, TableStatus.RESERVED)
 
         reservation = await self.repo.create(data.model_dump())
+        
+        # Send confirmation email if email is provided
+        if data.customer_email:
+            import asyncio
+            asyncio.create_task(
+                EmailService.send_reservation_confirmation(
+                    customer_email=data.customer_email,
+                    reservation_id=reservation.id,
+                    date_str=data.reservation_date.strftime("%Y-%m-%d"),
+                    time_str=data.start_time.strftime("%H:%M"),
+                    guests=data.guest_count
+                )
+            )
+
         return ReservationResponse.model_validate(reservation)
 
     async def get_by_id(self, id: int) -> ReservationResponse:

@@ -18,6 +18,8 @@ export default function CartPanel({
   serviceTax,
   discountAmount,
   total,
+  orderType,
+  onChangeOrderType,
 }) {
   return (
     <section className="cart-section">
@@ -26,6 +28,19 @@ export default function CartPanel({
         <span className="cart-order-no">#{String(orderNumber).padStart(5, '0')}</span>
         <span className="cart-time">{orderTime}</span>
         {kitchenStatus === 'sent' && <span className="kitchen-badge">👨‍🍳 In Kitchen</span>}
+      </div>
+
+      <div className="cart-order-type-toggle" style={{ display: 'flex', gap: '8px', padding: '0 1rem', marginBottom: '1rem' }}>
+        <button 
+          type="button"
+          style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #e0e0e0', background: orderType === 'DINE_IN' ? '#D4A056' : '#fff', color: orderType === 'DINE_IN' ? '#fff' : '#333' }}
+          onClick={() => onChangeOrderType('DINE_IN')}
+        >🍽️ Dine-in</button>
+        <button 
+          type="button"
+          style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #e0e0e0', background: orderType === 'TAKEAWAY' ? '#D4A056' : '#fff', color: orderType === 'TAKEAWAY' ? '#fff' : '#333' }}
+          onClick={() => onChangeOrderType('TAKEAWAY')}
+        >🛍️ Takeaway</button>
       </div>
 
       <div className="cart-items">

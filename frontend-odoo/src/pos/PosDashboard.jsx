@@ -146,6 +146,7 @@ export default function PosDashboard() {
   const [splitCount, setSplitCount] = useState(1)
 
   const [table, setTable] = useState(null)
+  const [orderType, setOrderType] = useState('TAKEAWAY')
   const [tableViewOpen, setTableViewOpen] = useState(false)
   const [reservationOpen, setReservationOpen] = useState(false)
   const [loyaltyOpen, setLoyaltyOpen] = useState(false)
@@ -289,7 +290,21 @@ export default function PosDashboard() {
     }
   };
 
+  const handleCreateReservation = async (reservationData) => {
+    try {
+      await apiFetch('/reservations/', {
+        method: 'POST',
+        body: JSON.stringify(reservationData)
+      });
+      showToast('Reservation confirmed and email sent!');
+      setReservationOpen(false);
+    } catch (e) {
+      showToast('Failed to create reservation: ' + e.message);
+    }
+  };
+
   const addToCart = (product) => {
+    let cartItemSeq = 0;
     setCart((prev) => {
       let newCart;
       const existing = prev.find((item) => item.productId === product.id)
@@ -373,8 +388,8 @@ export default function PosDashboard() {
         method: 'POST',
         body: JSON.stringify({
           session_id: session.id,
-          order_type: table ? 'DINE_IN' : 'TAKEAWAY',
-          table_id: table || null,
+          order_type: orderType,
+          table_id: table !== 'No' ? table : null,
           customer_id: (activeCustomerId && typeof activeCustomerId === 'number') ? activeCustomerId : null,
           items,
           discount_amount: discountAmount || 0,
@@ -474,8 +489,8 @@ export default function PosDashboard() {
           method: 'POST',
           body: JSON.stringify({
             session_id: session.id,
-            order_type: table ? 'DINE_IN' : 'TAKEAWAY',
-            table_id: table || null,
+            order_type: orderType,
+            table_id: table !== 'No' ? table : null,
             customer_id: (activeCustomerId && typeof activeCustomerId === 'number') ? activeCustomerId : null,
             items: cart.map(i => ({ product_id: i.productId, quantity: i.qty })),
             discount_amount: discountAmount || 0,
@@ -605,6 +620,9 @@ export default function PosDashboard() {
 
   const selectTable = (n) => {
     setTable(n)
+    if (n && n !== 'No') {
+      setOrderType('DINE_IN')
+    }
     setTableViewOpen(false)
   }
 
@@ -863,6 +881,7 @@ export default function PosDashboard() {
           setReservationOpen((v) => !v)
           setLoyaltyOpen(false)
         }}
+        onSubmitReservation={handleCreateReservation}
         loyaltyOpen={loyaltyOpen}
         onToggleLoyalty={() => {
           setLoyaltyOpen((v) => !v)
@@ -931,6 +950,8 @@ export default function PosDashboard() {
             serviceTax={serviceTax}
             discountAmount={discountAmount}
             total={total}
+            orderType={orderType}
+            onChangeOrderType={setOrderType}
           />
 
           <PaymentPanel
