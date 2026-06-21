@@ -559,7 +559,8 @@ export default function PosDashboard() {
           prefill: {
             name: activeCustomer?.name || 'Customer',
             email: activeCustomer?.email || 'guest@example.com',
-            contact: activeCustomer?.phone || ''
+            contact: activeCustomer?.phone || '',
+            method: pmType === 'upi' ? 'upi' : pmType === 'card' ? 'card' : undefined
           },
           theme: {
             color: "#D4A056"

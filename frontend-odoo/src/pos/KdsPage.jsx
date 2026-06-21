@@ -37,7 +37,7 @@ export default function KdsPage() {
   useEffect(() => {
     loadOrders()
     const token = localStorage.getItem('access_token')
-    const ws = new WebSocket(`ws://localhost:8000/ws?token=${token}`)
+    const ws = new WebSocket(`ws://localhost:8000/ws?token=${token}&channels=kds`)
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
